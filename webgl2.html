@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; overflow: hidden">
+  <canvas id="canvas"></canvas>
+  <script>
+    const canvas = document.getElementById('canvas')
+    const gl = canvas.getContext('webgl2')
+
+    const vao = gl.createVertexArray()
+    {
+      gl.bindVertexArray(vao)
+
+      const vertices = new Float32Array([
+        +0.0, +0.5, 0.0, 1.0, 0.0, 0.0, 1.0,
+        -0.5, -0.5, 0.0, 0.0, 1.0, 0.0, 1.0,
+        +0.5, -0.5, 0.0, 0.0, 0.0, 1.0, 1.0,
+      ])
+
+      const vbo = gl.createBuffer()
+      gl.bindBuffer(gl.ARRAY_BUFFER, vbo)
+      gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
+
+      const float_size = 4
+      const stride = float_size * 7
+
+      gl.enableVertexAttribArray(0)
+      gl.vertexAttribPointer(0, 3, gl.FLOAT, false, stride, 0)
+
+      gl.enableVertexAttribArray(1)
+      gl.vertexAttribPointer(1, 4, gl.FLOAT, false, stride, float_size * 3)
+    }
+
+    const program = gl.createProgram()
+    {
+      const vert_glsl = `
+        #version 300 es
+
+        layout(location=0) in vec3 a_position;
+        layout(location=1) in vec4 a_color;
+
+        out vec4 v_color;
+
+        void main() {
+          gl_Position = vec4(a_position, 1.0);
+          v_color = a_color;
+        }
+      `.trimStart()
+
+      const frag_glsl = `
+        #version 300 es
+        precision mediump float;
+
+        in vec4 v_color;
+        out vec4 f_color;
+
+        void main() {
+          f_color = v_color;
+        }
+      `.trimStart()
+
+      const vs = gl.createShader(gl.VERTEX_SHADER)
+      gl.shaderSource(vs, vert_glsl)
+      gl.compileShader(vs)
+      gl.attachShader(program, vs)
+
+      const fs = gl.createShader(gl.FRAGMENT_SHADER)
+      gl.shaderSource(fs, frag_glsl)
+      gl.compileShader(fs)
+      gl.attachShader(program, fs)
+
+      gl.linkProgram(program)
+      gl.deleteShader(vs)
+      gl.deleteShader(fs)
+    }
+
+    function update() {
+      gl.viewport(0, 0, canvas.width, canvas.height)
+
+      gl.clearColor(0.5, 0.5, 0.5, 1.0)
+      gl.clear(gl.COLOR_BUFFER_BIT)
+
+      gl.useProgram(program)
+      gl.bindVertexArray(vao)
+      gl.drawArrays(gl.TRIANGLES, 0, 3)
+
+      requestAnimationFrame(update)
+    }
+    requestAnimationFrame(update)
+
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+    addEventListener('resize', () => {
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+    })
+  </script>
+</body>
+</html>

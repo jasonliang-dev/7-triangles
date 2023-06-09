@@ -1,0 +1,8 @@
+.vs
+*.exe
+*.ilk
+*.pdb
+*.obj
+/*.dll
+.clang-format
+compile_flags.txt
